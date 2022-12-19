@@ -50,11 +50,10 @@ public class PostService {
         );
         if (!post.isValidPasswaord(requestDto.getPassword())) {
             throw new IllegalArgumentException("비밀번호가 틀렸습니다.");
-        } else {
-            post.update(id, requestDto);
-            postRepository.save(post);
         }
 
+        post.update(id, requestDto);
+        postRepository.save(post);
         return new PostResponseDto(post);
     }
 
@@ -65,9 +64,9 @@ public class PostService {
         );
         if (!post.isValidPasswaord(requestDto.getPassword())) {
             throw new IllegalArgumentException("비밀번호가 틀렸습니다.");
-        } else {
-            postRepository.deleteById(id);
         }
+
+        postRepository.deleteById(id);
         return "삭제 성공";
     }
 }
