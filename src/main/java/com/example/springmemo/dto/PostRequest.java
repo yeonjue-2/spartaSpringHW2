@@ -3,9 +3,7 @@ package com.example.springmemo.dto;
 import lombok.Getter;
 
 @Getter
-public class PostRequestDto {
+public class PostRequest {
     private String title;
-    private String userName;
     private String contents;
-    private int password;
 }

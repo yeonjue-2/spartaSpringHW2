@@ -1,12 +1,12 @@
 package com.example.springmemo.controller;
 
-import com.example.springmemo.dto.PostDeleteRequestDto;
-import com.example.springmemo.dto.PostRequestDto;
-import com.example.springmemo.dto.PostResponseDto;
-import com.example.springmemo.entity.Post;
+import com.example.springmemo.dto.*;
 import com.example.springmemo.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 @RestController
@@ -17,27 +17,27 @@ public class PostController {
     private final PostService postService;
 
     @GetMapping("/posts")
-    public List<PostResponseDto> getPosts() {
+    public List<PostResponse> getPosts() {
         return postService.getPosts();
     }
 
     @PostMapping("/posts")
-    public Post createPost(@RequestBody PostRequestDto requestDto) {
-        return postService.createPost(requestDto);
+    public PostResponse createPost(@RequestBody PostRequest requestDto, HttpServletRequest request) {
+        return postService.createPost(requestDto, request);
     }
 
     @GetMapping("/posts/{id}")
-    public PostResponseDto getPost(@PathVariable Long id) {
+    public PostResponse getPost(@PathVariable Long id) {
         return postService.getPost(id);
     }
 
     @PutMapping("/posts/{id}")
-    public PostResponseDto updatePost(@PathVariable Long id, @RequestBody PostRequestDto requestDto) {
-        return postService.updatePost(id, requestDto);
+    public PostResponse updatePost(@PathVariable Long id, @RequestBody PostRequest requestDto, HttpServletRequest request) {
+        return postService.updatePost(id, requestDto, request);
     }
 
     @DeleteMapping("/posts/{id}")
-    public String deletePost(@PathVariable Long id, @RequestBody PostDeleteRequestDto requestDto) {
-        return postService.deletePost(id, requestDto);
+    public StatusResponse deletePost(@PathVariable Long id, HttpServletRequest request, HttpServletResponse response) {
+        return postService.deletePost(id, request, response);
     }
 }

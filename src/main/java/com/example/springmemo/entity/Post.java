@@ -1,6 +1,6 @@
 package com.example.springmemo.entity;
 
-import com.example.springmemo.dto.PostRequestDto;
+import com.example.springmemo.dto.PostRequest;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -15,38 +15,29 @@ import javax.persistence.*;
 public class Post extends Timestamped{
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "post_id")
     private Long id;
 
     @Column(nullable = false)
     private String title;
 
     @Column(nullable = false)
-    private String userName;
-
-    @Column(nullable = false)
     private String contents;
 
-    @Column(nullable = false)
-    private int password;
+    @JoinColumn(name = "user_id")
+    @ManyToOne
+    private User user;
 
-    public Post(PostRequestDto requestDto) {
+    public Post(PostRequest requestDto, User user) {
         this.title = requestDto.getTitle();
-        this.userName = requestDto.getUserName();
         this.contents = requestDto.getContents();
-        this.password = requestDto.getPassword();
+        this.user = user;
     }
 
-    public void update(Long id, PostRequestDto requestDto) {
+    public void update(Long id, PostRequest requestDto, User user) {
         this.title = requestDto.getTitle();
-        this.userName = requestDto.getUserName();
         this.contents = requestDto.getContents();
-    }
-
-    public boolean isValidPasswaord(int password) {
-        if (this.password == password) {
-            return true;
-        }
-        return false;
+        this.user = user;
     }
 }

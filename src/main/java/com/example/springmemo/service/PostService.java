@@ -1,72 +1,138 @@
 package com.example.springmemo.service;
 
-import com.example.springmemo.dto.PostDeleteRequestDto;
-import com.example.springmemo.dto.PostRequestDto;
-import com.example.springmemo.dto.PostResponseDto;
+import com.example.springmemo.dto.*;
 import com.example.springmemo.entity.Post;
+import com.example.springmemo.entity.User;
+import com.example.springmemo.entity.UserRoleEnum;
+import com.example.springmemo.jwt.JwtUtil;
 import com.example.springmemo.repository.PostRepository;
+import com.example.springmemo.repository.UserRepository;
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class PostService {
     private final PostRepository postRepository;
+    private final UserRepository userRepository;
+    private final JwtUtil jwtUtil;
 
     @Transactional(readOnly = true)
-    public List<PostResponseDto> getPosts() {
+    public List<PostResponse> getPosts() {
+        List<PostResponse> list = new ArrayList<>();
         List<Post> posts = postRepository.findAllByOrderByModifiedAtDesc();
-        List<PostResponseDto> result = posts.stream()
-                .map(PostResponseDto::new)       //. map(o -> new PostResponseDto(o))
-                .collect(Collectors.toList());
-        return result;
 
+        for (Post post : posts) {
+            list.add(new PostResponse(post, post.getUser()));
+        }
+
+        return list;
     }
 
     @Transactional
-    public Post createPost(PostRequestDto requestDto) {
-        Post post = new Post(requestDto);
-        postRepository.save(post);
-        return post;
+    public PostResponse createPost(PostRequest requestDto, HttpServletRequest request) {
+        String token = jwtUtil.resolveToken(request);
+        Claims claims;   // JWT 내 정보를 담을 수 있는 객체라고 생각하기
+
+        // 토큰이 있는 경우에만 관심상품 추가 가능
+        if (token != null) {
+            if (jwtUtil.validateToken(token)) {
+                // 토큰에서 사용자 정보 가져오기
+                claims = jwtUtil.getUserInfoFromToken(token);
+            } else {
+                throw new IllegalArgumentException("Token Error");
+            }
+
+            // 토큰에서 가져온 사용자 정보를 사용하여 DB 조회
+            User user = userRepository.findByUsername(claims.getSubject()).orElseThrow(
+                    () -> new IllegalArgumentException("사용자가 존재하지 않습니다.")
+            );
+
+            // 요청받은 DTO 로 DB에 저장할 객체 만들기
+            Post post = postRepository.saveAndFlush(new Post(requestDto, user));
+
+            return new PostResponse(post, user);
+        } else {
+            return null;
+        }
 
     }
 
     @Transactional(readOnly = true)
-    public PostResponseDto getPost(Long id) {
+    public PostResponse getPost(Long id) {
         Post post = postRepository.findById(id).orElseThrow(
                 () -> new IllegalArgumentException("아이디가 존재하지 않습니다.")
         );
-        return new PostResponseDto(post);
+        return new PostResponse(post, post.getUser());
     }
 
     @Transactional
-    public PostResponseDto updatePost(Long id, PostRequestDto requestDto) {
-        Post post = postRepository.findById(id).orElseThrow(
-                () -> new IllegalArgumentException("아이디가 존재하지 않습니다.")
-        );
-        if (!post.isValidPasswaord(requestDto.getPassword())) {
-            throw new IllegalArgumentException("비밀번호가 틀렸습니다.");
-        }
+    public PostResponse updatePost(Long id, PostRequest requestDto, HttpServletRequest request) {
 
-        post.update(id, requestDto);
-        postRepository.save(post);
-        return new PostResponseDto(post);
+        String token = jwtUtil.resolveToken(request);
+        Claims claims;   // JWT 내 정보를 담을 수 있는 객체라고 생각하기
+
+        // 토큰이 있는 경우에만 관심상품 추가 가능
+        if (token != null) {
+            if (jwtUtil.validateToken(token)) {
+                // 토큰에서 사용자 정보 가져오기
+                claims = jwtUtil.getUserInfoFromToken(token);
+            } else {
+                throw new IllegalArgumentException("Token Error");
+            }
+
+            // 토큰에서 가져온 사용자 정보를 사용하여 DB 조회
+            User user = userRepository.findByUsername(claims.getSubject()).orElseThrow(
+                    () -> new IllegalArgumentException("사용자가 존재하지 않습니다.")
+            );
+
+            Post post = postRepository.findById(id).orElseThrow(
+                    () -> new IllegalArgumentException("아이디가 존재하지 않습니다.")
+            );
+
+            post.update(id, requestDto, user);
+            postRepository.save(post);
+            return new PostResponse(post, user);
+        } else {
+            return null;
+        }
     }
 
     @Transactional
-    public String deletePost(Long id, PostDeleteRequestDto requestDto) {
-        Post post = postRepository.findById(id).orElseThrow(
-                () -> new IllegalArgumentException("아이디가 존재하지 않습니다.")
-        );
-        if (!post.isValidPasswaord(requestDto.getPassword())) {
-            throw new IllegalArgumentException("비밀번호가 틀렸습니다.");
-        }
+    public StatusResponse deletePost(Long id, HttpServletRequest request, HttpServletResponse response) {
+        String token = jwtUtil.resolveToken(request);
+        Claims claims;   // JWT 내 정보를 담을 수 있는 객체라고 생각하기
 
-        postRepository.deleteById(id);
-        return "삭제 성공";
+        // 토큰이 있는 경우에만 관심상품 추가 가능
+        if (token != null) {
+            if (jwtUtil.validateToken(token)) {
+                // 토큰에서 사용자 정보 가져오기
+                claims = jwtUtil.getUserInfoFromToken(token);
+            } else {
+                throw new IllegalArgumentException("Token Error");
+            }
+
+            // 토큰에서 가져온 사용자 정보를 사용하여 DB 조회
+            User user = userRepository.findByUsername(claims.getSubject()).orElseThrow(
+                    () -> new IllegalArgumentException("사용자가 존재하지 않습니다.")
+            );
+
+            Post post = postRepository.findById(id).orElseThrow(
+                    () -> new IllegalArgumentException("아이디가 존재하지 않습니다.")
+            );
+
+            postRepository.deleteById(id);
+
+            return new StatusResponse(response);
+        } else {
+            return null;
+        }
     }
 }
