@@ -40,4 +40,8 @@ public class Post extends Timestamped{
         this.contents = requestDto.getContents();
         this.user = user;
     }
+
+    public boolean isWriter(String username) {
+        return this.user.getUsername().equals(username);
+    }
 }
