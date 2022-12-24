@@ -54,7 +54,7 @@ public class UserService {
                 () -> new IllegalArgumentException("사용자가 존재하지 않습니다.")
         );
 
-        if (!user.getPassword().equals(password)) {
+        if (!user.isValidPassword(password)) {
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
         }
 

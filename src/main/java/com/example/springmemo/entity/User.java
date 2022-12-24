@@ -35,4 +35,8 @@ public class User {
         this.password = password;
         this.role = role;
     }
+
+    public boolean isValidPassword(String password) {
+        return this.password.equals(password);
+    }
 }
