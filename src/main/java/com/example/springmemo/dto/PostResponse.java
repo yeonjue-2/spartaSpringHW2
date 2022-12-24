@@ -20,4 +20,11 @@ public class PostResponse {
         this.contents = post.getContents();
         this.modifiedAt = String.valueOf(post.getModifiedAt());
     }
+
+//    public Post toEntity(String username) {
+//        return Post.builder()
+//                .title(this.title)
+//                .contents(this.contents)
+//                .user()
+//    }
 }

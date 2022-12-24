@@ -37,32 +37,14 @@ public class PostService {
     }
 
     @Transactional
-    public PostResponse createPost(PostRequest requestDto, HttpServletRequest request) {
-        String token = jwtUtil.resolveToken(request);
-        Claims claims;   // JWT 내 정보를 담을 수 있는 객체라고 생각하기
+    public PostResponse createPost(PostRequest requestDto, String usernameOfToken) {
 
-        // 토큰이 있는 경우에만 관심상품 추가 가능
-        if (token != null) {
-            if (jwtUtil.validateToken(token)) {
-                // 토큰에서 사용자 정보 가져오기
-                claims = jwtUtil.getUserInfoFromToken(token);
-            } else {
-                throw new IllegalArgumentException("Token Error");
-            }
-
-            // 토큰에서 가져온 사용자 정보를 사용하여 DB 조회
-            User user = userRepository.findByUsername(claims.getSubject()).orElseThrow(
-                    () -> new IllegalArgumentException("사용자가 존재하지 않습니다.")
-            );
-
-            // 요청받은 DTO 로 DB에 저장할 객체 만들기
-            Post post = postRepository.saveAndFlush(new Post(requestDto, user));
-
-            return new PostResponse(post, user);
-        } else {
-            return null;
-        }
-
+        User user = userRepository.findByUsername(usernameOfToken).orElseThrow(
+                () -> new IllegalArgumentException("사용자가 존재하지 않습니다.")
+        );
+        Post post = new Post(requestDto, user);
+        postRepository.save(post);
+        return new PostResponse(post, user);
     }
 
     @Transactional(readOnly = true)

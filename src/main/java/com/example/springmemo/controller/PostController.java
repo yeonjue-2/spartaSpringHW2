@@ -1,7 +1,9 @@
 package com.example.springmemo.controller;
 
 import com.example.springmemo.dto.*;
+import com.example.springmemo.jwt.JwtUtil;
 import com.example.springmemo.service.PostService;
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,6 +17,7 @@ import java.util.List;
 public class PostController {
 
     private final PostService postService;
+    private final JwtUtil jwtUtil;
 
     @GetMapping("/posts")
     public List<PostResponse> getPosts() {
@@ -23,7 +26,20 @@ public class PostController {
 
     @PostMapping("/posts")
     public PostResponse createPost(@RequestBody PostRequest requestDto, HttpServletRequest request) {
-        return postService.createPost(requestDto, request);
+        String token = jwtUtil.resolveToken(request);
+        Claims claims;
+
+        if (token != null) {
+            if (!jwtUtil.validateToken(token)) {
+                throw new IllegalArgumentException("토큰값이 잘못되었습니다.");
+            }
+            claims = jwtUtil.getUserInfoFromToken(token);
+            String usernameOfToken = claims.getSubject();
+
+            return postService.createPost(requestDto, usernameOfToken);
+        } else {
+            throw new IllegalArgumentException("토큰이 존재하지 않습니다.");
+        }
     }
 
     @GetMapping("/posts/{id}")
