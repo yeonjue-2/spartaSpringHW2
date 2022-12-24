@@ -3,6 +3,7 @@ package com.example.springmemo.controller;
 import com.example.springmemo.dto.LoginRequest;
 import com.example.springmemo.dto.SignupRequest;
 import com.example.springmemo.dto.StatusResponse;
+import com.example.springmemo.jwt.JwtUtil;
 import com.example.springmemo.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +25,9 @@ public class UserController {
 
     @PostMapping("/login")
     public StatusResponse login(@RequestBody LoginRequest request, HttpServletResponse response) {
-        userService.login(request, response);
+        String token = userService.login(request);
+        response.addHeader(JwtUtil.AUTHORIZATION_HEADER, token);      // 헤더에 넣는 작업을 controller에서 처리
+
         return new StatusResponse(response);
     }
 }

@@ -5,8 +5,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity(name = "users")
 @Getter
@@ -28,8 +26,9 @@ public class User {
     @Enumerated(value = EnumType.STRING)
     private UserRoleEnum role;
 
-    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
-    private List<Post> posts = new ArrayList<>();
+//    현재는 필요하지 않은 양방향관계
+//    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
+//    private List<Post> posts = new ArrayList<>();
 
     public User(String username, String password, UserRoleEnum role) {
         this.username = username;

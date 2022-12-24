@@ -46,7 +46,7 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public void login(LoginRequest request, HttpServletResponse response) {
+    public String login(LoginRequest request) {
         String username = request.getUsername();
         String password = request.getPassword();
 
@@ -59,6 +59,6 @@ public class UserService {
         }
 
         // JWT 활용 시 추가
-        response.addHeader(JwtUtil.AUTHORIZATION_HEADER, jwtUtil.createToken(user.getUsername(), user.getRole()));
+        return jwtUtil.createToken(user.getUsername(), user.getRole());
     }
 }
