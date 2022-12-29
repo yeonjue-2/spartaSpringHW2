@@ -4,6 +4,8 @@ import com.example.springmemo.dto.PostRequest;
 import lombok.*;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -23,9 +25,12 @@ public class Post extends Timestamped{
     @Column(nullable = false)
     private String contents;
 
-    @JoinColumn(name = "user_id")
-    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
     private User user;
+
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
+    private List<Comment> commentList = new ArrayList<>();
 
     public Post(PostRequest requestDto, User user) {
         this.title = requestDto.getTitle();
