@@ -5,10 +5,11 @@ import com.example.springmemo.jwt.JwtUtil;
 import com.example.springmemo.service.PostService;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 @RestController
@@ -49,11 +50,25 @@ public class PostController {
 
     @PutMapping("/posts/{id}")
     public PostResponse updatePost(@PathVariable Long id, @RequestBody PostRequest requestDto, HttpServletRequest request) {
-        return postService.updatePost(id, requestDto, request);
+        String token = jwtUtil.resolveToken(request);
+        Claims claims;
+
+        if (token != null) {
+            if (!jwtUtil.validateToken(token)) {
+                throw new IllegalArgumentException("토큰값이 잘못되었습니다.");
+            }
+            claims = jwtUtil.getUserInfoFromToken(token);
+            String usernameOfToken = claims.getSubject();
+
+            return postService.updatePost(id, requestDto, usernameOfToken);
+        } else {
+            throw new IllegalArgumentException("토큰이 존재하지 않습니다.");
+        }
     }
 
     @DeleteMapping("/posts/{id}")
-    public StatusResponse deletePost(@PathVariable Long id, HttpServletRequest request, HttpServletResponse response) {
-        return postService.deletePost(id, request, response);
+    public ResponseEntity<String> deletePost(@PathVariable Long id, HttpServletRequest request) {
+        postService.deletePost(id, request);
+        return new ResponseEntity<>("Delete Success", HttpStatus.OK);
     }
 }

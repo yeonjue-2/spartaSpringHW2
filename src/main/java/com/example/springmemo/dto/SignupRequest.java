@@ -14,8 +14,8 @@ public class SignupRequest {
     @Size(min = 4, max = 10, message = "이름은 4 ~ 10자이어야 합니다.")
     private String username;
 
-    @Pattern(regexp = "^[a-zA-Z0-9]*$")
-    @Size(min = 8, max = 15, message = "비밀번호는 8 ~ 15자이어야 합니다!")
+    @Pattern(regexp = "^[a-zA-Z0-9`~!@#$%^&*()-_=+]*$")
+    @Size(min = 8, max = 15, message = "비밀번호는 8 ~ 15자이어야 합니다.")
     private String password;
 
     private boolean admin = false;
