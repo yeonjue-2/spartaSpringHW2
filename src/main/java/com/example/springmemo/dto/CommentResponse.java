@@ -17,9 +17,9 @@ public class CommentResponse {
     private String contents;
     private LocalDateTime modifiedAt;
 
-    public CommentResponse(Comment comment, Post post, User user) {
-        this.postId = post.getId();
-        this.userId = user.getId();
+    public CommentResponse(Comment comment) {
+        this.postId = comment.getPost().getId();
+        this.userId = comment.getUser().getId();
         this.id = comment.getId();
         this.contents = comment.getContents();
         this.modifiedAt = comment.getModifiedAt();

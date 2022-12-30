@@ -31,7 +31,7 @@ public class CommentService {
 
         Comment comment = new Comment(requestDto, post, user);
         commentRepository.save(comment);
-        return new CommentResponse(comment, post, user);
+        return new CommentResponse(comment);
     }
 
     public CommentResponse modifyComment(Long id, CommentRequest requestDto, String usernameOfToken) {
@@ -50,7 +50,7 @@ public class CommentService {
             throw new IllegalArgumentException("해당 유저만 사용할 수 있습니다.");
         }
 
-        return new CommentResponse(comment, comment.getPost(), user);
+        return new CommentResponse(comment);
     }
 
     public void removeComment(Long id, String usernameOfToken) {

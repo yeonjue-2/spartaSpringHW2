@@ -1,10 +1,12 @@
 package com.example.springmemo.service;
 
 import com.example.springmemo.dto.*;
+import com.example.springmemo.entity.Comment;
 import com.example.springmemo.entity.Post;
 import com.example.springmemo.entity.User;
 import com.example.springmemo.entity.UserRoleEnum;
 import com.example.springmemo.jwt.JwtUtil;
+import com.example.springmemo.repository.CommentRepository;
 import com.example.springmemo.repository.PostRepository;
 import com.example.springmemo.repository.UserRepository;
 import io.jsonwebtoken.Claims;
@@ -15,12 +17,14 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class PostService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final CommentRepository commentRepository;
     private final JwtUtil jwtUtil;
 
     @Transactional(readOnly = true)
@@ -29,7 +33,12 @@ public class PostService {
         List<Post> posts = postRepository.findAllByOrderByModifiedAtDesc();
 
         for (Post post : posts) {
-            list.add(new PostResponse(post, post.getUser()));
+            List<Comment> commentList = commentRepository.findAllByPostId(post.getId());
+            if (commentList.size() != 0) {
+                list.add(new PostResponse(post, post.getUser(), commentList));
+            } else {
+                list.add(new PostResponse(post, post.getUser()));
+            }
         }
 
         return list;

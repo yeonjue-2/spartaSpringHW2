@@ -25,6 +25,11 @@ public class PostController {
         return postService.getPosts();
     }
 
+    @GetMapping("/posts/{id}")
+    public PostResponse getPost(@PathVariable Long id) {
+        return postService.getPost(id);
+    }
+
     @PostMapping("/posts")
     public PostResponse createPost(@RequestBody PostRequest requestDto, HttpServletRequest request) {
         String token = jwtUtil.resolveToken(request);
@@ -41,11 +46,6 @@ public class PostController {
         } else {
             throw new IllegalArgumentException("토큰이 존재하지 않습니다.");
         }
-    }
-
-    @GetMapping("/posts/{id}")
-    public PostResponse getPost(@PathVariable Long id) {
-        return postService.getPost(id);
     }
 
     @PutMapping("/posts/{id}")
