@@ -35,4 +35,13 @@ public class Comment extends Timestamped{
         this.post = post;
 
     }
+
+    public void update(CommentRequest requestDto, User user) {
+        this.contents = requestDto.getContents();
+        this.user = user;
+    }
+
+    public boolean isWriter(String username) {
+        return this.user.getUsername().equals(username);
+    }
 }

@@ -9,6 +9,7 @@ import com.example.springmemo.repository.CommentRepository;
 import com.example.springmemo.repository.PostRepository;
 import com.example.springmemo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -31,5 +32,40 @@ public class CommentService {
         Comment comment = new Comment(requestDto, post, user);
         commentRepository.save(comment);
         return new CommentResponse(comment, post, user);
+    }
+
+    public CommentResponse modifyComment(Long id, CommentRequest requestDto, String usernameOfToken) {
+        Comment comment = commentRepository.findById(id).orElseThrow(
+                () -> new IllegalArgumentException("댓글이 존재하지 않습니다.")
+        );
+
+        User user = userRepository.findByUsername(usernameOfToken).orElseThrow(
+                () -> new IllegalArgumentException("사용자가 존재하지 않습니다.")
+        );
+
+        if (comment.isWriter(user.getUsername())) {
+            comment.update(requestDto, user);
+            commentRepository.save(comment);
+        } else {
+            throw new IllegalArgumentException("해당 유저만 사용할 수 있습니다.");
+        }
+
+        return new CommentResponse(comment, comment.getPost(), user);
+    }
+
+    public void removeComment(Long id, String usernameOfToken) {
+        Comment comment = commentRepository.findById(id).orElseThrow(
+                () -> new IllegalArgumentException("댓글이 존재하지 않습니다.")
+        );
+
+        User user = userRepository.findByUsername(usernameOfToken).orElseThrow(
+                () -> new IllegalArgumentException("사용자가 존재하지 않습니다.")
+        );
+
+        if (comment.isWriter(user.getUsername())) {
+            commentRepository.delete(comment);
+        } else {
+            throw new IllegalArgumentException("해당 유저만 사용할 수 있습니다.");
+        }
     }
 }
