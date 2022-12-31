@@ -17,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -60,6 +59,13 @@ public class PostService {
         Post post = postRepository.findById(id).orElseThrow(
                 () -> new IllegalArgumentException("아이디가 존재하지 않습니다.")
         );
+
+        List<Comment> commentList = commentRepository.findAllByPostIdOrderByModifiedAtDesc(post.getId());
+
+        if (commentList.size() != 0) {
+            return new PostResponse(post, post.getUser(), commentList);
+        }
+
         return new PostResponse(post, post.getUser());
     }
 
