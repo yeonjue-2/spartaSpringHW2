@@ -33,7 +33,7 @@ public class PostService {
         List<Post> posts = postRepository.findAllByOrderByModifiedAtDesc();
 
         for (Post post : posts) {
-            List<Comment> commentList = commentRepository.findAllByPostId(post.getId());
+            List<Comment> commentList = commentRepository.findAllByPostIdOrderByModifiedAtDesc(post.getId());
             if (commentList.size() != 0) {
                 list.add(new PostResponse(post, post.getUser(), commentList));
             } else {
