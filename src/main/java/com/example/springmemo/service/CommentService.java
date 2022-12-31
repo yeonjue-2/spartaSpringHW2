@@ -9,7 +9,6 @@ import com.example.springmemo.repository.CommentRepository;
 import com.example.springmemo.repository.PostRepository;
 import com.example.springmemo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -43,7 +42,7 @@ public class CommentService {
                 () -> new IllegalArgumentException("사용자가 존재하지 않습니다.")
         );
 
-        if (comment.isWriter(user.getUsername())) {
+        if (comment.isWriter(user.getUsername()) || user.isAdmin(user.getRole())) {
             comment.update(requestDto, user);
             commentRepository.save(comment);
         } else {
@@ -62,7 +61,7 @@ public class CommentService {
                 () -> new IllegalArgumentException("사용자가 존재하지 않습니다.")
         );
 
-        if (comment.isWriter(user.getUsername())) {
+        if (comment.isWriter(user.getUsername()) || user.isAdmin(user.getRole())) {
             commentRepository.delete(comment);
         } else {
             throw new IllegalArgumentException("해당 유저만 사용할 수 있습니다.");

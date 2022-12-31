@@ -6,6 +6,8 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
+import static com.example.springmemo.entity.UserRoleEnum.ADMIN;
+
 @Entity(name = "users")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -38,5 +40,9 @@ public class User {
 
     public boolean isValidPassword(String password) {
         return this.password.equals(password);
+    }
+
+    public boolean isAdmin(UserRoleEnum role) {
+        return role.equals(ADMIN);
     }
 }

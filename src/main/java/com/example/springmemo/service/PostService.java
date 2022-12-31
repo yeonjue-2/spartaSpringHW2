@@ -81,7 +81,7 @@ public class PostService {
                 () -> new IllegalArgumentException("사용자가 존재하지 않습니다.")
         );
 
-        if (post.isWriter(user.getUsername())) {
+        if (post.isWriter(user.getUsername()) || user.isAdmin(user.getRole())) {
             post.update(id, requestDto, user);
             postRepository.save(post);
         } else {
@@ -114,7 +114,7 @@ public class PostService {
                     () -> new IllegalArgumentException("사용자가 존재하지 않습니다.")
             );
 
-            if (post.isWriter(user.getUsername())) {
+            if (post.isWriter(user.getUsername()) || user.isAdmin(user.getRole())) {
                 postRepository.deleteById(id);
             } else {
                 throw new RuntimeException("해당 유저만 삭제할 수 있습니다.");
