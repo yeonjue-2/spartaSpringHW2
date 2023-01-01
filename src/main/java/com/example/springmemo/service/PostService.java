@@ -24,7 +24,6 @@ public class PostService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     private final CommentRepository commentRepository;
-    private final JwtUtil jwtUtil;
 
     @Transactional(readOnly = true)
     public List<PostResponse> getPosts() {
@@ -44,9 +43,9 @@ public class PostService {
     }
 
     @Transactional
-    public PostResponse createPost(PostRequest requestDto, String usernameOfToken) {
+    public PostResponse createPost(PostRequest requestDto, String username) {
 
-        User user = userRepository.findByUsername(usernameOfToken).orElseThrow(
+        User user = userRepository.findByUsername(username).orElseThrow(
                 () -> new IllegalArgumentException("사용자가 존재하지 않습니다.")
         );
         Post post = new Post(requestDto, user);
@@ -70,18 +69,18 @@ public class PostService {
     }
 
     @Transactional
-    public PostResponse updatePost(Long id, PostRequest requestDto, String usernameOfToken) {
+    public PostResponse updatePost(Long id, PostRequest requestDto, String username) {
 
         Post post = postRepository.findById(id).orElseThrow(
                 () -> new IllegalArgumentException("해당 포스트가 존재하지 않습니다.")
         );
 
         // 토큰에서 가져온 사용자 정보를 사용하여 DB 조회
-        User user = userRepository.findByUsername(usernameOfToken).orElseThrow(
+        User user = userRepository.findByUsername(username).orElseThrow(
                 () -> new IllegalArgumentException("사용자가 존재하지 않습니다.")
         );
 
-        if (post.isWriter(user.getUsername()) || user.isAdmin(user.getRole())) {
+        if (post.isWriter(user.getUsername())) {
             post.update(id, requestDto, user);
             postRepository.save(post);
         } else {
@@ -92,33 +91,48 @@ public class PostService {
     }
 
     @Transactional
-    public void deletePost(Long id, HttpServletRequest request) {
+    public PostResponse adminUpdatePost(Long id, PostRequest requestDto, String username) {
+
         Post post = postRepository.findById(id).orElseThrow(
                 () -> new IllegalArgumentException("해당 포스트가 존재하지 않습니다.")
         );
 
-        String token = jwtUtil.resolveToken(request);
-        Claims claims;   // JWT 내 정보를 담을 수 있는 객체라고 생각하기
+        // 토큰에서 가져온 사용자 정보를 사용하여 DB 조회
+        User user = userRepository.findByUsername(username).orElseThrow(
+                () -> new IllegalArgumentException("사용자가 존재하지 않습니다.")
+        );
 
-        // 토큰이 있는 경우에만 관심상품 추가 가능
-        if (token != null) {
-            if (jwtUtil.validateToken(token)) {
-                // 토큰에서 사용자 정보 가져오기
-                claims = jwtUtil.getUserInfoFromToken(token);
-            } else {
-                throw new IllegalArgumentException("Token Error");
-            }
+        post.update(id, requestDto, user);
+        postRepository.save(post);
 
-            // 토큰에서 가져온 사용자 정보를 사용하여 DB 조회
-            User user = userRepository.findByUsername(claims.getSubject()).orElseThrow(
-                    () -> new IllegalArgumentException("사용자가 존재하지 않습니다.")
-            );
+        return new PostResponse(post, user);
+    }
 
-            if (post.isWriter(user.getUsername()) || user.isAdmin(user.getRole())) {
-                postRepository.deleteById(id);
-            } else {
-                throw new RuntimeException("해당 유저만 삭제할 수 있습니다.");
-            }
+    @Transactional
+    public void deletePost(Long id, String username) {
+        Post post = postRepository.findById(id).orElseThrow(
+                () -> new IllegalArgumentException("해당 포스트가 존재하지 않습니다.")
+        );
+
+        // 토큰에서 가져온 사용자 정보를 사용하여 DB 조회
+        User user = userRepository.findByUsername(username).orElseThrow(
+                () -> new IllegalArgumentException("사용자가 존재하지 않습니다.")
+        );
+
+        if (post.isWriter(user.getUsername())) {
+            postRepository.deleteById(id);
+        } else {
+            throw new RuntimeException("해당 유저만 삭제할 수 있습니다.");
         }
+    }
+
+    @Transactional
+    public void adminDeletePost(Long id) {
+        Post post = postRepository.findById(id).orElseThrow(
+                () -> new IllegalArgumentException("해당 포스트가 존재하지 않습니다.")
+        );
+
+        postRepository.deleteById(id);
+
     }
 }
