@@ -4,7 +4,8 @@
 </br>
 
 ## ERD
-![](../Desktop/스크린샷 2023-01-01 오후 11.21.39.png)
+<img width="717" alt="스크린샷 2023-01-01 오후 11 21 39" src="https://user-images.githubusercontent.com/101540771/210174243-faf10710-4ff4-4759-b41f-a56e1aef65e2.png">
+
 </br>
 
 ## API 명세
