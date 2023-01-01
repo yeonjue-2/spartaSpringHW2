@@ -41,8 +41,4 @@ public class User {
     public boolean isValidPassword(String password) {
         return this.password.equals(password);
     }
-
-    public boolean isAdmin(UserRoleEnum role) {
-        return role.equals(ADMIN);
-    }
 }

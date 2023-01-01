@@ -4,7 +4,6 @@ import com.example.springmemo.dto.*;
 import com.example.springmemo.entity.UserRoleEnum;
 import com.example.springmemo.jwt.AuthenticatedUser;
 import com.example.springmemo.jwt.JwtUtil;
-import com.example.springmemo.jwt.JwtService;
 import com.example.springmemo.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -22,7 +21,6 @@ public class PostController {
 
     private final PostService postService;
     private final JwtUtil jwtUtil;
-    private final JwtService jwtService;
 
     @GetMapping("/posts")
     public List<PostResponse> getPosts() {
@@ -37,21 +35,21 @@ public class PostController {
     @PostMapping("/posts")
     public PostResponse createPost(@RequestBody PostRequest requestDto, HttpServletRequest request) {
         String token = jwtUtil.resolveToken(request);
-        AuthenticatedUser authenticatedUser = jwtService.validateAndGetInfo(token);
+        AuthenticatedUser authenticatedUser = jwtUtil.validateAndGetInfo(token);
         return postService.createPost(requestDto, authenticatedUser.getUsername());
     }
 
     @PutMapping("/posts/{id}")
     public PostResponse updatePost(@PathVariable Long id, @RequestBody PostRequest requestDto, HttpServletRequest request) {
         String token = jwtUtil.resolveToken(request);
-        AuthenticatedUser authenticatedUser = jwtService.validateAndGetInfo(token);
+        AuthenticatedUser authenticatedUser = jwtUtil.validateAndGetInfo(token);
         return postService.updatePost(id, requestDto, authenticatedUser.getUsername());
     }
 
     @PutMapping("/admin/posts/{id}")
     public PostResponse adminUpdatePost(@PathVariable Long id, @RequestBody PostRequest requestDto, HttpServletRequest request) {
         String token = jwtUtil.resolveToken(request);
-        AuthenticatedUser authenticatedUser = jwtService.validateAndGetInfo(token);
+        AuthenticatedUser authenticatedUser = jwtUtil.validateAndGetInfo(token);
 
         if (!authenticatedUser.getUserRoleEnum().equals(UserRoleEnum.ADMIN)) {
             throw new IllegalArgumentException("권한이 없습니다.");
@@ -64,7 +62,7 @@ public class PostController {
     public ResponseEntity<String> deletePost(@PathVariable Long id, HttpServletRequest request) {
         // 인증
         String token = jwtUtil.resolveToken(request);
-        AuthenticatedUser authenticatedUser = jwtService.validateAndGetInfo(token);
+        AuthenticatedUser authenticatedUser = jwtUtil.validateAndGetInfo(token);
 
         postService.deletePost(id, authenticatedUser.getUsername());
 
@@ -75,7 +73,7 @@ public class PostController {
     public ResponseEntity<String> adminDeletePost(@PathVariable Long id, HttpServletRequest request) {
         // 인증
         String token = jwtUtil.resolveToken(request);
-        AuthenticatedUser authenticatedUser = jwtService.validateAndGetInfo(token);
+        AuthenticatedUser authenticatedUser = jwtUtil.validateAndGetInfo(token);
 
         // 안가
         if (!authenticatedUser.getUserRoleEnum().equals(UserRoleEnum.ADMIN)) {

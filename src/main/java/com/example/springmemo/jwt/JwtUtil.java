@@ -80,4 +80,15 @@ public class JwtUtil {
     public Claims getUserInfoFromToken(String token) {
         return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
     }
+
+    public AuthenticatedUser validateAndGetInfo(String token) {
+        if (validateToken(token)) {
+            Claims claims = getUserInfoFromToken(token);
+            String username = claims.getSubject();
+            UserRoleEnum role = UserRoleEnum.valueOf(claims.get("auth").toString());
+            return new AuthenticatedUser(role, username );
+        } else {
+            throw new IllegalArgumentException("Token Error");
+        }
+    }
 }
