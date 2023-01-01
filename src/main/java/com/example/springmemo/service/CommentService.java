@@ -18,13 +18,13 @@ public class CommentService {
     private final UserRepository userRepository;
     private final PostRepository postRepository;
 
-    public CommentResponse saveComment(Long postId, CommentRequest requestDto, String usernameOfToken) {
+    public CommentResponse saveComment(Long postId, CommentRequest requestDto, String username) {
 
         Post post = postRepository.findById(postId).orElseThrow(
                 () -> new IllegalArgumentException("포스트가 존재하지 않습니다.")
         );
 
-        User user = userRepository.findByUsername(usernameOfToken).orElseThrow(
+        User user = userRepository.findByUsername(username).orElseThrow(
                 () -> new IllegalArgumentException("사용자가 존재하지 않습니다.")
         );
 
@@ -33,16 +33,16 @@ public class CommentService {
         return new CommentResponse(comment);
     }
 
-    public CommentResponse modifyComment(Long id, CommentRequest requestDto, String usernameOfToken) {
+    public CommentResponse modifyComment(Long id, CommentRequest requestDto, String username) {
         Comment comment = commentRepository.findById(id).orElseThrow(
                 () -> new IllegalArgumentException("댓글이 존재하지 않습니다.")
         );
 
-        User user = userRepository.findByUsername(usernameOfToken).orElseThrow(
+        User user = userRepository.findByUsername(username).orElseThrow(
                 () -> new IllegalArgumentException("사용자가 존재하지 않습니다.")
         );
 
-        if (comment.isWriter(user.getUsername()) || user.isAdmin(user.getRole())) {
+        if (comment.isWriter(user.getUsername())) {
             comment.update(requestDto, user);
             commentRepository.save(comment);
         } else {
@@ -52,19 +52,43 @@ public class CommentService {
         return new CommentResponse(comment);
     }
 
-    public void removeComment(Long id, String usernameOfToken) {
+    public CommentResponse adminModifyComment(Long id, CommentRequest requestDto, String username) {
         Comment comment = commentRepository.findById(id).orElseThrow(
                 () -> new IllegalArgumentException("댓글이 존재하지 않습니다.")
         );
 
-        User user = userRepository.findByUsername(usernameOfToken).orElseThrow(
+        User user = userRepository.findByUsername(username).orElseThrow(
                 () -> new IllegalArgumentException("사용자가 존재하지 않습니다.")
         );
 
-        if (comment.isWriter(user.getUsername()) || user.isAdmin(user.getRole())) {
-            commentRepository.delete(comment);
+        comment.update(requestDto, user);
+        commentRepository.save(comment);
+
+        return new CommentResponse(comment);
+    }
+
+    public void removeComment(Long id, String username) {
+        Comment comment = commentRepository.findById(id).orElseThrow(
+                () -> new IllegalArgumentException("댓글이 존재하지 않습니다.")
+        );
+
+        User user = userRepository.findByUsername(username).orElseThrow(
+                () -> new IllegalArgumentException("사용자가 존재하지 않습니다.")
+        );
+
+        if (comment.isWriter(user.getUsername())) {
+            commentRepository.deleteById(id);
         } else {
             throw new IllegalArgumentException("해당 유저만 사용할 수 있습니다.");
         }
+    }
+
+    public void adminRemoveComment(Long id) {
+        Comment comment = commentRepository.findById(id).orElseThrow(
+                () -> new IllegalArgumentException("댓글이 존재하지 않습니다.")
+        );
+
+        commentRepository.deleteById(id);
+
     }
 }

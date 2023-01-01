@@ -2,9 +2,11 @@ package com.example.springmemo.controller;
 
 import com.example.springmemo.dto.CommentRequest;
 import com.example.springmemo.dto.CommentResponse;
+import com.example.springmemo.entity.UserRoleEnum;
+import com.example.springmemo.jwt.AuthenticatedUser;
+import com.example.springmemo.jwt.JwtService;
 import com.example.springmemo.jwt.JwtUtil;
 import com.example.springmemo.service.CommentService;
-import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,63 +16,60 @@ import javax.servlet.http.HttpServletRequest;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/comments")
+@RequestMapping("/api/")
 public class CommentController {
     private final CommentService commentService;
     private final JwtUtil jwtUtil;
+    private final JwtService jwtService;
 
-    @PostMapping("/{postId}")
+    @PostMapping("/posts/{postId}/comments")
     public CommentResponse createComment(@PathVariable Long postId, @RequestBody CommentRequest requestDto, HttpServletRequest request) {
+
         String token = jwtUtil.resolveToken(request);
-        Claims claims;
-
-        if (token != null) {
-            if (!jwtUtil.validateToken(token)) {
-                throw new IllegalArgumentException("토큰값이 잘못되었습니다.");
-            }
-            claims = jwtUtil.getUserInfoFromToken(token);
-            String usernameOfToken = claims.getSubject();
-
-            return commentService.saveComment(postId, requestDto, usernameOfToken);
-        } else {
-            throw new IllegalArgumentException("토큰이 존재하지 않습니다.");
-        }
+        AuthenticatedUser authenticatedUser = jwtService.validateAndGetInfo(token);
+        return commentService.saveComment(postId, requestDto, authenticatedUser.getUsername());
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/comments/{id}")
     public CommentResponse updateComment(@PathVariable Long id, @RequestBody CommentRequest requestDto, HttpServletRequest request) {
         String token = jwtUtil.resolveToken(request);
-        Claims claims;
-
-        if (token != null) {
-            if (!jwtUtil.validateToken(token)) {
-                throw new IllegalArgumentException("토큰값이 잘못되었습니다.");
-            }
-            claims = jwtUtil.getUserInfoFromToken(token);
-            String usernameOfToken = claims.getSubject();
-
-            return commentService.modifyComment(id, requestDto, usernameOfToken);
-        } else {
-            throw new IllegalArgumentException("토큰이 존재하지 않습니다.");
-        }
+        AuthenticatedUser authenticatedUser = jwtService.validateAndGetInfo(token);
+        return commentService.modifyComment(id, requestDto, authenticatedUser.getUsername());
     }
 
-    @DeleteMapping("/{id}")
+    @PutMapping("/admin/comments/{id}")
+    public CommentResponse adminUpdateComment(@PathVariable Long id, @RequestBody CommentRequest requestDto, HttpServletRequest request) {
+        String token = jwtUtil.resolveToken(request);
+        AuthenticatedUser authenticatedUser = jwtService.validateAndGetInfo(token);
+
+        if (!authenticatedUser.getUserRoleEnum().equals(UserRoleEnum.ADMIN)) {
+            throw new IllegalArgumentException("권한이 없습니다.");
+        }
+
+        return commentService.adminModifyComment(id, requestDto, authenticatedUser.getUsername());
+    }
+
+    @DeleteMapping("/comments/{id}")
     public ResponseEntity<String> deleteComment(@PathVariable Long id, HttpServletRequest request) {
         String token = jwtUtil.resolveToken(request);
-        Claims claims;
+        AuthenticatedUser authenticatedUser = jwtService.validateAndGetInfo(token);
 
-        if (token != null) {
-            if (!jwtUtil.validateToken(token)) {
-                throw new IllegalArgumentException("토큰값이 잘못되었습니다.");
-            }
-            claims = jwtUtil.getUserInfoFromToken(token);
-            String usernameOfToken = claims.getSubject();
+        commentService.removeComment(id, authenticatedUser.getUsername());
 
-            commentService.removeComment(id, usernameOfToken);
-            return new ResponseEntity<>("Comment Delete Success", HttpStatus.OK);
-        } else {
-            throw new IllegalArgumentException("토큰이 존재하지 않습니다.");
+        return new ResponseEntity<>("Delete Success", HttpStatus.OK);
+    }
+
+    @DeleteMapping("/admin/comments/{id}")
+    public ResponseEntity<String> adminDeleteComment(@PathVariable Long id, HttpServletRequest request) {
+        String token = jwtUtil.resolveToken(request);
+        AuthenticatedUser authenticatedUser = jwtService.validateAndGetInfo(token);
+
+        if (!authenticatedUser.getUserRoleEnum().equals(UserRoleEnum.ADMIN)) {
+            throw new IllegalArgumentException("권한이 없습니다.");
         }
+
+        commentService.adminRemoveComment(id);
+
+        return new ResponseEntity<>("Delete Success", HttpStatus.OK);
     }
 }

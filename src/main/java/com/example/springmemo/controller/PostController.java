@@ -41,24 +41,6 @@ public class PostController {
         return postService.createPost(requestDto, authenticatedUser.getUsername());
     }
 
-//    @PutMapping("/posts/{id}")
-//    public PostResponse updatePost(@PathVariable Long id, @RequestBody PostRequest requestDto, HttpServletRequest request) {
-//        String token = jwtUtil.resolveToken(request);
-//        Claims claims;
-//
-//        if (token != null) {
-//            if (!jwtUtil.validateToken(token)) {
-//                throw new IllegalArgumentException("토큰값이 잘못되었습니다.");
-//            }
-//            claims = jwtUtil.getUserInfoFromToken(token);
-//            String usernameOfToken = claims.getSubject();
-//
-//            return postService.updatePost(id, requestDto, usernameOfToken);
-//        } else {
-//            throw new IllegalArgumentException("토큰이 존재하지 않습니다.");
-//        }
-//    }
-
     @PutMapping("/posts/{id}")
     public PostResponse updatePost(@PathVariable Long id, @RequestBody PostRequest requestDto, HttpServletRequest request) {
         String token = jwtUtil.resolveToken(request);
